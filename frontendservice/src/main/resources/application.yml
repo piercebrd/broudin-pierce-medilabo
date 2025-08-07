@@ -1,0 +1,5 @@
+server:
+  port: 8085
+
+gateway:
+  url: http://gateway:8080

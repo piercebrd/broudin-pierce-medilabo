@@ -3,8 +3,15 @@ spring:
     gateway:
       routes:
         - id: patient-service
-          uri: http://patient-service:8080  # Correct Docker service name
+          uri: http://patient-service:8080
           predicates:
             - Path=/api/patients/**
+          filters:
+            - StripPrefix=1
+
+        - id: frontend-service
+          uri: http://frontend-service:8085
+          predicates:
+            - Path=/web/**
           filters:
             - StripPrefix=1

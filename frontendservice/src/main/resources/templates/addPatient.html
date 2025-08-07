@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Add Patient</title>
+    <style>
+        .form-group { margin: 10px 0; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input { width: 300px; padding: 8px; border: 1px solid #ddd; }
+        .btn { padding: 8px 16px; margin: 5px; text-decoration: none; border: none; cursor: pointer; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+    </style>
+</head>
+<body>
+<h1>Add New Patient</h1>
+
+<form th:action="@{/patients}" th:object="${patient}" method="post">
+    <div class="form-group">
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" th:field="*{firstName}" required />
+    </div>
+
+    <div class="form-group">
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" th:field="*{lastName}" required />
+    </div>
+
+    <div class="form-group">
+        <label for="dateOfBirth">Date of Birth:</label>
+        <input type="date" id="dateOfBirth" th:field="*{dateOfBirth}" required />
+    </div>
+
+    <div class="form-group">
+        <label for="gender">Gender:</label>
+        <input type="text" id="gender" th:field="*{gender}" required />
+    </div>
+
+    <div class="form-group">
+        <label for="address">Address (Optional):</label>
+        <input type="text" id="address" th:field="*{address}" />
+    </div>
+
+    <div class="form-group">
+        <label for="phoneNumber">Phone Number (Optional):</label>
+        <input type="text" id="phoneNumber" th:field="*{phoneNumber}" />
+    </div>
+
+    <div>
+        <button type="submit" class="btn btn-success">Save Patient</button>
+        <a th:href="@{/patients}" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+</body>
+</html>

@@ -41,5 +41,17 @@ services:
       - SPRING_CLOUD_GATEWAY_ROUTES_0_PREDICATES_0=Path=/api/patients/**
       - SPRING_CLOUD_GATEWAY_ROUTES_0_FILTERS_0=StripPrefix=1
 
+      - SPRING_CLOUD_GATEWAY_ROUTES_1_ID=frontend-service
+      - SPRING_CLOUD_GATEWAY_ROUTES_1_URI=http://frontend-service:8085
+      - SPRING_CLOUD_GATEWAY_ROUTES_1_PREDICATES_0=Path=/web/**
+      - SPRING_CLOUD_GATEWAY_ROUTES_1_FILTERS_0=StripPrefix=1  
+  
+  frontend-service:
+    build: ./frontendservice
+    ports:     
+    - "8085:8085"
+    depends_on:
+      - gateway
+
 volumes:
   mysql-data:
