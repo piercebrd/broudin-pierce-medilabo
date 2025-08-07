@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: pokju147
+      MYSQL_DATABASE: patientdb
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  patient-service:
+    build: ./patientservice
+    ports:
+      - "8081:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/patientdb
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=pokju147
+
+  gateway:
+    build: ./gateway
+    ports:
+      - "8083:8080"
+    depends_on:
+      - patient-service
+    environment:
+      - SPRING_CLOUD_GATEWAY_ROUTES_0_ID=patient-service
+      - SPRING_CLOUD_GATEWAY_ROUTES_0_URI=http://patient-service:8080
+      - SPRING_CLOUD_GATEWAY_ROUTES_0_PREDICATES_0=Path=/api/patients/**
+      - SPRING_CLOUD_GATEWAY_ROUTES_0_FILTERS_0=StripPrefix=1
+
+volumes:
+  mysql-data:
