@@ -11,11 +11,18 @@
         .patient-info { margin: 20px 0; }
         .patient-info p { margin: 10px 0; }
         .patient-info strong { display: inline-block; width: 150px; }
+        .alert-success { color:#155724; background:#d4edda; padding:8px; margin:8px 0; }
+        .alert-danger  { color:#721c24; background:#f8d7da; padding:8px; margin:8px 0; }
+        .note-card { border:1px solid #eee; padding:10px; margin:10px 0; }
     </style>
 </head>
 <body>
 <h1>Patient Details</h1>
 
+<!-- Optional flash after update/delete -->
+<div th:if="${success}" class="alert-success" th:text="${success}"></div>
+
+<!-- Basic info -->
 <div class="patient-info">
     <p><strong>ID:</strong> <span th:text="${patient.id}"></span></p>
     <p><strong>First Name:</strong> <span th:text="${patient.firstName}"></span></p>
@@ -26,6 +33,33 @@
     <p><strong>Phone Number:</strong> <span th:text="${patient.phoneNumber ?: 'Not provided'}"></span></p>
 </div>
 
+<!-- Notes -->
+<section style="margin-top:20px;">
+    <h2>Notes</h2>
+
+    <div th:if="${noteSuccess}" class="alert-success" th:text="${noteSuccess}"></div>
+    <div th:if="${noteError}"   class="alert-danger"  th:text="${noteError}"></div>
+
+    <div th:if="${#lists.isEmpty(notes)}">
+        <p>No notes yet.</p>
+    </div>
+    <div th:if="${!#lists.isEmpty(notes)}">
+        <div th:each="n : ${notes}" class="note-card">
+            <div style="font-size:0.9rem;color:#666;" th:text="${n.createdAt}"></div>
+            <pre style="white-space:pre-wrap; margin:6px 0 0 0;" th:text="${n.text}"></pre>
+        </div>
+    </div>
+
+    <form th:action="@{|/patients/${patient.id}/notes|}" method="post" style="margin-top:12px;">
+        <label for="text"><strong>Add a note</strong></label><br/>
+        <textarea id="text" name="text" rows="6" style="width:100%;" placeholder="Type the visit note here..." required></textarea>
+        <div style="margin-top:8px;">
+            <button type="submit" class="btn btn-primary">Save note</button>
+        </div>
+    </form>
+</section>
+
+<!-- Actions -->
 <div>
     <a th:href="@{/patients}" class="btn btn-secondary">Back to List</a>
     <a th:href="@{/patients/{id}/edit(id=${patient.id})}" class="btn btn-warning">Edit</a>

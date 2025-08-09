@@ -1,38 +1,61 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Patient Details</title>
+    <title>Edit Patient</title>
+    <meta charset="UTF-8"/>
     <style>
-        .btn { padding: 8px 16px; margin: 5px; text-decoration: none; border: none; cursor: pointer; }
-        .btn-primary { background-color: #007bff; color: white; }
-        .btn-warning { background-color: #ffc107; color: black; }
-        .btn-danger { background-color: #dc3545; color: white; }
-        .btn-secondary { background-color: #6c757d; color: white; }
-        .patient-info { margin: 20px 0; }
-        .patient-info p { margin: 10px 0; }
-        .patient-info strong { display: inline-block; width: 150px; }
+        .form-group { margin:10px 0 }
+        .form-group label { display:block; margin-bottom:5px; font-weight:600 }
+        .form-group input { width:300px; padding:8px; border:1px solid #ddd }
+        .btn { padding:8px 16px; margin:5px; border:none; cursor:pointer; text-decoration:none }
+        .btn-primary { background:#007bff; color:#fff }
+        .btn-secondary { background:#6c757d; color:#fff }
     </style>
 </head>
 <body>
-<h1>Patient Details</h1>
+<h1>Edit Patient</h1>
 
-<div class="patient-info">
-    <p><strong>ID:</strong> <span th:text="${patient.id}"></span></p>
-    <p><strong>First Name:</strong> <span th:text="${patient.firstName}"></span></p>
-    <p><strong>Last Name:</strong> <span th:text="${patient.lastName}"></span></p>
-    <p><strong>Date of Birth:</strong> <span th:text="${patient.dateOfBirth}"></span></p>
-    <p><strong>Gender:</strong> <span th:text="${patient.gender}"></span></p>
-    <p><strong>Address:</strong> <span th:text="${patient.address ?: 'Not provided'}"></span></p>
-    <p><strong>Phone Number:</strong> <span th:text="${patient.phoneNumber ?: 'Not provided'}"></span></p>
-</div>
+<!-- IMPORTANT: no th:object here -->
+<form th:action="@{/patients/{id}/edit(id=${patient.id})}" method="post">
+    <!-- keep ID so the backend knows who we're updating -->
+    <input type="hidden" name="id" th:value="${patient.id}"/>
 
-<div>
-    <a th:href="@{/patients}" class="btn btn-secondary">Back to List</a>
-    <a th:href="@{/patients/{id}/edit(id=${patient.id})}" class="btn btn-warning">Edit</a>
-    <form th:action="@{/patients/{id}/delete(id=${patient.id})}" method="post" style="display: inline;"
-          onsubmit="return confirm('Are you sure you want to delete this patient?')">
-        <button type="submit" class="btn btn-danger">Delete</button>
-    </form>
-</div>
+    <div class="form-group">
+        <label for="firstName">First Name</label>
+        <input id="firstName" name="firstName" type="text" th:value="${patient.firstName}" required>
+    </div>
+
+    <div class="form-group">
+        <label for="lastName">Last Name</label>
+        <input id="lastName" name="lastName" type="text" th:value="${patient.lastName}" required>
+    </div>
+
+    <div class="form-group">
+        <label for="dateOfBirth">Date of Birth</label>
+        <!-- format LocalDate for input[type=date] -->
+        <input id="dateOfBirth" name="dateOfBirth" type="date"
+               th:value="${patient.dateOfBirth != null ? #temporals.format(patient.dateOfBirth,'yyyy-MM-dd') : ''}" required>
+    </div>
+
+    <div class="form-group">
+        <label for="gender">Gender</label>
+        <input id="gender" name="gender" type="text" th:value="${patient.gender}" required>
+    </div>
+
+    <div class="form-group">
+        <label for="address">Address (Optional)</label>
+        <input id="address" name="address" type="text" th:value="${patient.address}">
+    </div>
+
+    <div class="form-group">
+        <label for="phoneNumber">Phone Number (Optional)</label>
+        <input id="phoneNumber" name="phoneNumber" type="text" th:value="${patient.phoneNumber}">
+    </div>
+
+    <div>
+        <button type="submit" class="btn btn-primary">Save changes</button>
+        <a th:href="@{/patients/{id}(id=${patient.id})}" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
 </body>
 </html>
