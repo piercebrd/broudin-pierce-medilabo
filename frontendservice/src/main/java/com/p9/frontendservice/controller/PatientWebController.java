@@ -1,11 +1,16 @@
 package com.p9.frontendservice.controller;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.annotation.PostConstruct;
@@ -13,17 +18,11 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Frontend web controller for Patients + Notes (Sprint 2).
- * Patient service:  /api/patients/**
- * Notes service:    /api/patients/{id}/notes
- */
 @Controller
 public class PatientWebController {
 
-    // ====== Config ======
     @Value("${gateway.url:http://gateway:8080}")
-    private String gatewayBaseUrl; // e.g., http://gateway:8080 (inside Docker)
+    private String gatewayBaseUrl;
 
     private WebClient webClient;
 
@@ -34,7 +33,9 @@ public class PatientWebController {
                 .build();
     }
 
-    // ====== DTOs bound to Thymeleaf ======
+    // ===== DTOs =====
+    @Getter
+    @Setter
     public static class PatientDto {
         public Long id;
         public String firstName;
@@ -42,17 +43,25 @@ public class PatientWebController {
         public String gender;
         public String address;
         public String phoneNumber;
+
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) // <-- important for form binding
         public LocalDate dateOfBirth;
+
+        @Override public String toString() {
+            return "PatientDto{id=" + id + ", firstName='" + firstName + "', lastName='" + lastName +
+                    "', gender='" + gender + "', address='" + address + "', phoneNumber='" + phoneNumber +
+                    "', dateOfBirth=" + dateOfBirth + "}";
+        }
     }
 
     public static class NoteResponse {
         public String id;
         public Long patientId;
         public String text;
-        public String createdAt; // ISO-8601 string
+        public String createdAt;
     }
 
-    // ====== List patients ======
+    // ===== List =====
     @GetMapping("/patients")
     public String listPatients(Model model) {
         List<PatientDto> patients = webClient.get()
@@ -65,27 +74,36 @@ public class PatientWebController {
         return "patients";
     }
 
-    // ====== New patient form ======
+    // ===== Create form =====
     @GetMapping("/patients/new")
     public String addPatientForm(Model model) {
         model.addAttribute("patient", new PatientDto());
         return "addPatient";
     }
 
-    // ====== Create patient ======
+    // ===== Create =====
     @PostMapping(value = "/patients", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public String createPatient(@ModelAttribute PatientDto patient, RedirectAttributes ra) {
-        PatientDto created = webClient.post()
-                .uri("/api/patients")
-                .bodyValue(patient)
-                .retrieve()
-                .bodyToMono(PatientDto.class)
-                .block();
-        ra.addFlashAttribute("success", "Patient created (ID " + created.id + ").");
-        return "redirect:/patients";
+        try {
+            PatientDto created = webClient.post()
+                    .uri("/api/patients")
+                    .bodyValue(patient)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, resp ->
+                            resp.bodyToMono(String.class).map(msg -> new WebClientResponseException(
+                                    "Create failed: " + msg, resp.statusCode().value(), resp.statusCode().toString(),
+                                    null, null, null)))
+                    .bodyToMono(PatientDto.class)
+                    .block();
+            ra.addFlashAttribute("success", "Patient created (ID " + created.id + ").");
+            return "redirect:/patients";
+        } catch (WebClientResponseException e) {
+            ra.addFlashAttribute("error", "Create failed: " + e.getMessage());
+            return "redirect:/patients/new";
+        }
     }
 
-    // ====== View patient details (includes notes) ======
+    // ===== Details (with notes) =====
     @GetMapping("/patients/{id}")
     public String getPatient(@PathVariable Long id, Model model) {
         PatientDto patient = webClient.get()
@@ -106,44 +124,89 @@ public class PatientWebController {
         return "patientDetails";
     }
 
-    // ====== Edit page (single mapping!) ======
+    // ===== Edit form (single mapping) =====
     @GetMapping("/patients/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model) {
-        PatientDto patient = webClient.get()
-                .uri("/api/patients/{id}", id)
-                .retrieve()
-                .bodyToMono(PatientDto.class)
-                .block();
-        model.addAttribute("patient", patient); // name must be "patient"
-        return "editPatient";
+        try {
+            PatientDto patient = webClient.get()
+                    .uri("/api/patients/{id}", id)
+                    .retrieve()
+                    .bodyToMono(PatientDto.class)
+                    .block();
+
+            // Debug logging
+            System.out.println("Fetched patient for edit: " + patient.toString());
+
+            model.addAttribute("patient", patient);
+            return "editPatient";
+        } catch (Exception e) {
+            System.err.println("Error fetching patient for edit: " + e.getMessage());
+            return "redirect:/patients";
+        }
     }
 
-    // ====== Update patient ======
+    // ===== Update =====
     @PostMapping(value = "/patients/{id}/edit", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public String updatePatient(@PathVariable Long id, @ModelAttribute PatientDto form, RedirectAttributes ra) {
-        webClient.put()
-                .uri("/api/patients/{id}", id)
-                .bodyValue(form)
-                .retrieve()
-                .toBodilessEntity()
-                .block();
-        ra.addFlashAttribute("success", "Patient updated.");
-        return "redirect:/patients/" + id;
+    public String updatePatient(@PathVariable Long id, @ModelAttribute PatientDto form, RedirectAttributes ra, Model model) {
+
+        // Debug logging
+        System.out.println("Received form data: " + form.toString());
+
+        try {
+            // Ensure ID is set
+            form.id = (form.id == null) ? id : form.id;
+
+            // Force PUT + JSON to patient-service
+            webClient.put()
+                    .uri("/api/patients/{id}", id)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(form)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+
+            ra.addFlashAttribute("success", "Patient updated.");
+            return "redirect:/patients/" + id;
+
+        } catch (WebClientResponseException e) {
+            System.err.println("Update failed: " + e.getMessage());
+            ra.addFlashAttribute("error", "Update failed: " + e.getMessage());
+
+            // Re-add the patient to the model and return to the edit form
+            model.addAttribute("patient", form);
+            return "editPatient";
+        } catch (Exception e) {
+            System.err.println("Unexpected error during update: " + e.getMessage());
+            ra.addFlashAttribute("error", "Update failed due to an unexpected error.");
+
+            // Re-add the patient to the model and return to the edit form
+            model.addAttribute("patient", form);
+            return "editPatient";
+        }
     }
 
-    // ====== Delete patient ======
+
+    // ===== Delete =====
     @PostMapping("/patients/{id}/delete")
     public String deletePatient(@PathVariable Long id, RedirectAttributes ra) {
-        webClient.delete()
-                .uri("/api/patients/{id}", id)
-                .retrieve()
-                .toBodilessEntity()
-                .block();
-        ra.addFlashAttribute("success", "Patient deleted.");
+        try {
+            webClient.delete()
+                    .uri("/api/patients/{id}", id)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, resp ->
+                            resp.bodyToMono(String.class).map(msg -> new WebClientResponseException(
+                                    "Delete failed: " + msg, resp.statusCode().value(), resp.statusCode().toString(),
+                                    null, null, null)))
+                    .toBodilessEntity()
+                    .block();
+            ra.addFlashAttribute("success", "Patient deleted.");
+        } catch (WebClientResponseException e) {
+            ra.addFlashAttribute("error", "Delete failed: " + e.getMessage());
+        }
         return "redirect:/patients";
     }
 
-    // ====== Create a note for a patient (Sprint 2) ======
+    // ===== Notes =====
     @PostMapping(value = "/patients/{id}/notes", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public String addNote(@PathVariable Long id,
                           @RequestParam("text") String text,
@@ -157,11 +220,15 @@ public class PatientWebController {
                     .uri("/api/patients/{id}/notes", id)
                     .bodyValue(Map.of("text", text))
                     .retrieve()
+                    .onStatus(HttpStatusCode::isError, resp ->
+                            resp.bodyToMono(String.class).map(msg -> new WebClientResponseException(
+                                    "Add note failed: " + msg, resp.statusCode().value(), resp.statusCode().toString(),
+                                    null, null, null)))
                     .toBodilessEntity()
                     .block();
             ra.addFlashAttribute("noteSuccess", "Note added.");
-        } catch (Exception e) {
-            ra.addFlashAttribute("noteError", "Failed to add note.");
+        } catch (WebClientResponseException e) {
+            ra.addFlashAttribute("noteError", "Add note failed: " + e.getMessage());
         }
         return "redirect:/patients/" + id;
     }

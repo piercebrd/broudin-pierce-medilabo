@@ -15,47 +15,56 @@
 <body>
 <h1>Edit Patient</h1>
 
-<!-- IMPORTANT: no th:object here -->
-<form th:action="@{/patients/{id}/edit(id=${patient.id})}" method="post">
-    <!-- keep ID so the backend knows who we're updating -->
-    <input type="hidden" name="id" th:value="${patient.id}"/>
+<!-- Check if patient exists before rendering form -->
+<div th:if="${patient != null}">
+    <!-- Remove th:object and use pure manual binding -->
+    <form th:action="@{/patients/{id}/edit(id=${patient.id})}" method="post">
+        <!-- Keep ID as hidden field -->
+        <input type="hidden" name="id" th:value="${patient.id}"/>
 
-    <div class="form-group">
-        <label for="firstName">First Name</label>
-        <input id="firstName" name="firstName" type="text" th:value="${patient.firstName}" required>
-    </div>
+        <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input id="firstName" name="firstName" type="text" th:value="${patient.firstName}" required>
+        </div>
 
-    <div class="form-group">
-        <label for="lastName">Last Name</label>
-        <input id="lastName" name="lastName" type="text" th:value="${patient.lastName}" required>
-    </div>
+        <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input id="lastName" name="lastName" type="text" th:value="${patient.lastName}" required>
+        </div>
 
-    <div class="form-group">
-        <label for="dateOfBirth">Date of Birth</label>
-        <!-- format LocalDate for input[type=date] -->
-        <input id="dateOfBirth" name="dateOfBirth" type="date"
-               th:value="${patient.dateOfBirth != null ? #temporals.format(patient.dateOfBirth,'yyyy-MM-dd') : ''}" required>
-    </div>
+        <div class="form-group">
+            <label for="dateOfBirth">Date of Birth</label>
+            <input id="dateOfBirth" name="dateOfBirth" type="date"
+                   th:value="${patient.dateOfBirth != null ? #temporals.format(patient.dateOfBirth,'yyyy-MM-dd') : ''}" required>
+        </div>
 
-    <div class="form-group">
-        <label for="gender">Gender</label>
-        <input id="gender" name="gender" type="text" th:value="${patient.gender}" required>
-    </div>
+        <div class="form-group">
+            <label for="gender">Gender</label>
+            <input id="gender" name="gender" type="text" th:value="${patient.gender}" required>
+        </div>
 
-    <div class="form-group">
-        <label for="address">Address (Optional)</label>
-        <input id="address" name="address" type="text" th:value="${patient.address}">
-    </div>
+        <div class="form-group">
+            <label for="address">Address (Optional)</label>
+            <input id="address" name="address" type="text" th:value="${patient.address ?: ''}">
+        </div>
 
-    <div class="form-group">
-        <label for="phoneNumber">Phone Number (Optional)</label>
-        <input id="phoneNumber" name="phoneNumber" type="text" th:value="${patient.phoneNumber}">
-    </div>
+        <div class="form-group">
+            <label for="phoneNumber">Phone Number (Optional)</label>
+            <input id="phoneNumber" name="phoneNumber" type="text" th:value="${patient.phoneNumber ?: ''}">
+        </div>
 
-    <div>
-        <button type="submit" class="btn btn-primary">Save changes</button>
-        <a th:href="@{/patients/{id}(id=${patient.id})}" class="btn btn-secondary">Cancel</a>
-    </div>
-</form>
+        <div>
+            <button type="submit" class="btn btn-primary">Save changes</button>
+            <a th:href="@{/patients/{id}(id=${patient.id})}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<!-- Show error message if patient is null -->
+<div th:if="${patient == null}">
+    <p>Error: Patient not found.</p>
+    <a th:href="@{/patients}" class="btn btn-secondary">Back to List</a>
+</div>
+
 </body>
 </html>
