@@ -14,10 +14,15 @@
         .alert-success { color:#155724; background:#d4edda; padding:8px; margin:8px 0; }
         .alert-danger  { color:#721c24; background:#f8d7da; padding:8px; margin:8px 0; }
         .note-card { border:1px solid #eee; padding:10px; margin:10px 0; }
+        .badge{display:inline-block;margin-left:8px;padding:3px 8px;border-radius:10px;background:#eee;font-weight:600;}
     </style>
 </head>
 <body>
-<h1>Patient Details</h1>
+<h1>
+    Patient Details
+    <span th:if="${risk != null}" class="badge"
+          th:text="${'Diabetes risk: ' + risk.risk}">Diabetes risk: …</span>
+</h1>
 
 <!-- Optional flash after update/delete -->
 <div th:if="${success}" class="alert-success" th:text="${success}"></div>
@@ -31,6 +36,7 @@
     <p><strong>Gender:</strong> <span th:text="${patient.gender}"></span></p>
     <p><strong>Address:</strong> <span th:text="${patient.address ?: 'Not provided'}"></span></p>
     <p><strong>Phone Number:</strong> <span th:text="${patient.phoneNumber ?: 'Not provided'}"></span></p>
+    <p th:if="${risk != null}"><strong>Triggers count:</strong> <span th:text="${risk.triggerCount}"></span></p>
 </div>
 
 <!-- Notes -->

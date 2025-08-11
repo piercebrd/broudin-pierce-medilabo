@@ -40,6 +40,19 @@ services:
     ports:
       - "8084:8080"
 
+  diabetes-risk-service:
+    build: ./riskservice
+    image: diabetes-risk-service:latest
+    container_name: diabetes-risk-service
+    environment:
+      - PATIENT_SERVICE_URL=http://patient-service:8080
+      - NOTES_SERVICE_URL=http://notes-service:8080
+    depends_on:
+      - patient-service
+      - notes-service
+    ports:
+      - "8086:8080" # optional local debug
+
   gateway:
     build: ./gateway
     ports:
@@ -47,6 +60,7 @@ services:
     depends_on:
       - patient-service
       - notes-service
+      - diabetes-risk-service
     environment:
       # Notes route FIRST so it takes priority
       - SPRING_CLOUD_GATEWAY_ROUTES_0_ID=notes-service
@@ -64,6 +78,12 @@ services:
       - SPRING_CLOUD_GATEWAY_ROUTES_2_URI=http://frontend-service:8085
       - SPRING_CLOUD_GATEWAY_ROUTES_2_PREDICATES_0=Path=/web/**
       - SPRING_CLOUD_GATEWAY_ROUTES_2_FILTERS_0=StripPrefix=1
+
+      # Risk service
+      - SPRING_CLOUD_GATEWAY_ROUTES_3_ID=diabetes-risk-service
+      - SPRING_CLOUD_GATEWAY_ROUTES_3_URI=http://diabetes-risk-service:8080
+      - SPRING_CLOUD_GATEWAY_ROUTES_3_PREDICATES_0=Path=/api/risk/**
+      - SPRING_CLOUD_GATEWAY_ROUTES_3_FILTERS_0=StripPrefix=0
 
   frontend-service:
     build: ./frontendservice

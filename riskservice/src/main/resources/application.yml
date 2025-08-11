@@ -1,0 +1,18 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: diabetes-risk-service
+
+services:
+  patient:
+    base-url: ${PATIENT_SERVICE_URL:http://patient-service:8080}
+  notes:
+    base-url: ${NOTES_SERVICE_URL:http://notes-service:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

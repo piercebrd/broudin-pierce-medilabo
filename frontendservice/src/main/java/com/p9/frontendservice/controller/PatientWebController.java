@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import com.p9.frontendservice.client.RiskClient;
+
 
 import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
@@ -21,10 +23,18 @@ import java.util.Map;
 @Controller
 public class PatientWebController {
 
+    private final RiskClient riskClient;
+
+    public PatientWebController(RiskClient riskClient) {
+        this.riskClient = riskClient;
+    }
+
     @Value("${gateway.url:http://gateway:8080}")
     private String gatewayBaseUrl;
 
     private WebClient webClient;
+
+
 
     @PostConstruct
     public void initWebClient() {
@@ -106,6 +116,7 @@ public class PatientWebController {
     // ===== Details (with notes) =====
     @GetMapping("/patients/{id}")
     public String getPatient(@PathVariable Long id, Model model) {
+        var risk = riskClient.getRisk(id);
         PatientDto patient = webClient.get()
                 .uri("/api/patients/{id}", id)
                 .retrieve()
@@ -121,6 +132,7 @@ public class PatientWebController {
 
         model.addAttribute("patient", patient);
         model.addAttribute("notes", notes);
+        model.addAttribute("risk", risk);
         return "patientDetails";
     }
 
