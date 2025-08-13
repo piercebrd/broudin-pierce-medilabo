@@ -14,12 +14,15 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.p9.frontendservice.client.RiskClient;
 
-
 import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Contrôleur Web gérant l’interface utilisateur pour la gestion des patients.
+ * Utilise WebClient pour communiquer avec les microservices via le Gateway.
+ */
 @Controller
 public class PatientWebController {
 
@@ -34,8 +37,9 @@ public class PatientWebController {
 
     private WebClient webClient;
 
-
-
+    /**
+     * Initialise le WebClient après la construction du contrôleur.
+     */
     @PostConstruct
     public void initWebClient() {
         this.webClient = WebClient.builder()
@@ -54,10 +58,11 @@ public class PatientWebController {
         public String address;
         public String phoneNumber;
 
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) // <-- important for form binding
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) // Nécessaire pour le binding du formulaire
         public LocalDate dateOfBirth;
 
-        @Override public String toString() {
+        @Override
+        public String toString() {
             return "PatientDto{id=" + id + ", firstName='" + firstName + "', lastName='" + lastName +
                     "', gender='" + gender + "', address='" + address + "', phoneNumber='" + phoneNumber +
                     "', dateOfBirth=" + dateOfBirth + "}";
@@ -71,7 +76,7 @@ public class PatientWebController {
         public String createdAt;
     }
 
-    // ===== List =====
+    // ===== Liste =====
     @GetMapping("/patients")
     public String listPatients(Model model) {
         List<PatientDto> patients = webClient.get()
@@ -84,14 +89,14 @@ public class PatientWebController {
         return "patients";
     }
 
-    // ===== Create form =====
+    // ===== Formulaire de création =====
     @GetMapping("/patients/new")
     public String addPatientForm(Model model) {
         model.addAttribute("patient", new PatientDto());
         return "addPatient";
     }
 
-    // ===== Create =====
+    // ===== Création =====
     @PostMapping(value = "/patients", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public String createPatient(@ModelAttribute PatientDto patient, RedirectAttributes ra) {
         try {
@@ -113,7 +118,7 @@ public class PatientWebController {
         }
     }
 
-    // ===== Details (with notes) =====
+    // ===== Détails (avec notes) =====
     @GetMapping("/patients/{id}")
     public String getPatient(@PathVariable Long id, Model model) {
         var risk = riskClient.getRisk(id);
@@ -136,7 +141,7 @@ public class PatientWebController {
         return "patientDetails";
     }
 
-    // ===== Edit form (single mapping) =====
+    // ===== Formulaire de modification =====
     @GetMapping("/patients/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model) {
         try {
@@ -146,9 +151,7 @@ public class PatientWebController {
                     .bodyToMono(PatientDto.class)
                     .block();
 
-            // Debug logging
             System.out.println("Fetched patient for edit: " + patient.toString());
-
             model.addAttribute("patient", patient);
             return "editPatient";
         } catch (Exception e) {
@@ -157,18 +160,14 @@ public class PatientWebController {
         }
     }
 
-    // ===== Update =====
+    // ===== Mise à jour =====
     @PostMapping(value = "/patients/{id}/edit", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public String updatePatient(@PathVariable Long id, @ModelAttribute PatientDto form, RedirectAttributes ra, Model model) {
-
-        // Debug logging
         System.out.println("Received form data: " + form.toString());
 
         try {
-            // Ensure ID is set
             form.id = (form.id == null) ? id : form.id;
 
-            // Force PUT + JSON to patient-service
             webClient.put()
                     .uri("/api/patients/{id}", id)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -183,22 +182,17 @@ public class PatientWebController {
         } catch (WebClientResponseException e) {
             System.err.println("Update failed: " + e.getMessage());
             ra.addFlashAttribute("error", "Update failed: " + e.getMessage());
-
-            // Re-add the patient to the model and return to the edit form
             model.addAttribute("patient", form);
             return "editPatient";
         } catch (Exception e) {
             System.err.println("Unexpected error during update: " + e.getMessage());
             ra.addFlashAttribute("error", "Update failed due to an unexpected error.");
-
-            // Re-add the patient to the model and return to the edit form
             model.addAttribute("patient", form);
             return "editPatient";
         }
     }
 
-
-    // ===== Delete =====
+    // ===== Suppression =====
     @PostMapping("/patients/{id}/delete")
     public String deletePatient(@PathVariable Long id, RedirectAttributes ra) {
         try {
@@ -218,7 +212,7 @@ public class PatientWebController {
         return "redirect:/patients";
     }
 
-    // ===== Notes =====
+    // ===== Ajout de note =====
     @PostMapping(value = "/patients/{id}/notes", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public String addNote(@PathVariable Long id,
                           @RequestParam("text") String text,

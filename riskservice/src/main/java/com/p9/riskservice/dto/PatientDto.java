@@ -2,13 +2,28 @@ package com.p9.riskservice.dto;
 
 import java.time.LocalDate;
 
+/**
+ * DTO représentant un patient.
+ * Utilisé pour transférer les informations de base d’un patient depuis le microservice Patient.
+ */
 public class PatientDto {
-    private Long id;
-    private String firstName;
-    private String lastName;
-    private LocalDate dateOfBirth; // match your patient-service field
-    private String gender;         // "M" or "F" (match your patient-service)
 
+    // Identifiant unique du patient
+    private Long id;
+
+    // Prénom du patient
+    private String firstName;
+
+    // Nom de famille du patient
+    private String lastName;
+
+    // Date de naissance du patient (doit correspondre au champ dans patient-service)
+    private LocalDate dateOfBirth;
+
+    // Genre du patient ("M" ou "F", doit correspondre au champ dans patient-service)
+    private String gender;
+
+    // Constructeur par défaut
     public PatientDto() {}
 
     public Long getId() { return id; }
