@@ -24,10 +24,8 @@
           th:text="${'Diabetes risk: ' + risk.risk}">Diabetes risk: …</span>
 </h1>
 
-<!-- Optional flash after update/delete -->
 <div th:if="${success}" class="alert-success" th:text="${success}"></div>
 
-<!-- Basic info -->
 <div class="patient-info">
     <p><strong>ID:</strong> <span th:text="${patient.id}"></span></p>
     <p><strong>First Name:</strong> <span th:text="${patient.firstName}"></span></p>
@@ -39,7 +37,6 @@
     <p th:if="${risk != null}"><strong>Triggers count:</strong> <span th:text="${risk.triggerCount}"></span></p>
 </div>
 
-<!-- Notes -->
 <section style="margin-top:20px;">
     <h2>Notes</h2>
 
@@ -65,7 +62,6 @@
     </form>
 </section>
 
-<!-- Actions -->
 <div>
     <a th:href="@{/patients}" class="btn btn-secondary">Back to List</a>
     <a th:href="@{/patients/{id}/edit(id=${patient.id})}" class="btn btn-warning">Edit</a>

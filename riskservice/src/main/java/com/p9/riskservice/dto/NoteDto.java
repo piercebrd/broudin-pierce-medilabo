@@ -10,16 +10,12 @@ import java.time.Instant;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class NoteDto {
 
-    // Identifiant unique de la note (String, pas Long)
     private String id;
 
-    // Identifiant du patient auquel la note est liée
     private Long patientId;
 
-    // Contenu textuel de la note
     private String text;
 
-    // Date et heure de création de la note
     private Instant createdAt;
 
     public String getId() { return id; }

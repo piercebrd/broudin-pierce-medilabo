@@ -45,3 +45,25 @@ Lancer les bases : MongoDB (+ une base relationnelle pour patientservice).
 Démarrer : patientservice → notesservice → riskservice → gateway → frontendservice.
 
 Ouvrir http://localhost:8085/login puis se connecter.
+
+GREEN CODE 
+
+Moins de données sur le réseau : ajoute la pagination (/patients?page=&size=), renvoie des DTO allégés (seulement les champs utiles) et active la compression HTTP.
+
+Cache léger : côté frontend, mets en cache la liste des patients et le risque (30–60 s). Côté backend, mémorise le résultat du risque et invalide le cache à l’ajout d’une note ou mise à jour patient.
+
+Regroupe les appels : charge patient + notes en parallèle, évite les rechargements/polling inutiles.
+
+Index BDD :
+
+MongoDB : index sur patientId, createdAt.
+
+SQL : index sur colonnes de recherche (ex. lastName).
+
+Utilise des projections (ne récupérer que text, createdAt quand c’est suffisant).
+
+Static & Front : minifie CSS/JS, active le cache navigateur, lazy-load sur les listes longues.
+
+Runtime : images Docker slim, JVM -Xms/-Xmx ajustés au besoin, logs en INFO (pas de DEBUG en prod).
+
+Robustesse : configure des timeouts raisonnables sur WebClient/RestClient pour éviter les boucles coûteuses.

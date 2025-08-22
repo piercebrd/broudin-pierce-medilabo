@@ -15,11 +15,9 @@
 <body>
 <h1>Edit Patient</h1>
 
-<!-- Check if patient exists before rendering form -->
 <div th:if="${patient != null}">
-    <!-- Remove th:object and use pure manual binding -->
+
     <form th:action="@{/patients/{id}/edit(id=${patient.id})}" method="post">
-        <!-- Keep ID as hidden field -->
         <input type="hidden" name="id" th:value="${patient.id}"/>
 
         <div class="form-group">
@@ -60,7 +58,6 @@
     </form>
 </div>
 
-<!-- Show error message if patient is null -->
 <div th:if="${patient == null}">
     <p>Error: Patient not found.</p>
     <a th:href="@{/patients}" class="btn btn-secondary">Back to List</a>

@@ -14,8 +14,8 @@ public class PatientNote {
     private String id;
 
     private Long patientId;
-    private String text;        // preserve full text (including newlines)
-    private Instant createdAt;  // server timestamp (UTC)
+    private String text;
+    private Instant createdAt;
 
     public PatientNote() {}
 

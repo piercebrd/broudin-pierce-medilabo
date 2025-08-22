@@ -20,7 +20,6 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 // Autorisations
                 .authorizeHttpRequests(auth -> auth
-                        // IMPORTANT : la page login, l’URL de traitement, et la page d’erreur doivent rester publics
                         .requestMatchers("/login", "/error", "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -32,7 +31,7 @@ public class SecurityConfig {
                         .failureUrl("/login?error=true")      // En cas d’échec, afficher l’erreur
                         .permitAll()
                 )
-                // Logout (par défaut POST /logout ; tu peux faire GET si tu veux, mais POST est recommandé)
+                // Logout
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")

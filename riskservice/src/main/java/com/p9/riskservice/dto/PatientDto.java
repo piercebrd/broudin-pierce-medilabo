@@ -8,19 +8,14 @@ import java.time.LocalDate;
  */
 public class PatientDto {
 
-    // Identifiant unique du patient
     private Long id;
 
-    // Prénom du patient
     private String firstName;
 
-    // Nom de famille du patient
     private String lastName;
 
-    // Date de naissance du patient (doit correspondre au champ dans patient-service)
     private LocalDate dateOfBirth;
 
-    // Genre du patient ("M" ou "F", doit correspondre au champ dans patient-service)
     private String gender;
 
     // Constructeur par défaut

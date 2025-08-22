@@ -35,13 +35,11 @@
   <h1>Sign in</h1>
   <p class="muted">Please authenticate to access the patient dashboard.</p>
 
-  <!-- Messages d’erreur / logout (pilotés par Spring Security) -->
   <div class="alert error" th:if="${param.error}">Invalid username or password.</div>
   <div class="alert info"  th:if="${param.logout}">You have been logged out.</div>
 
-  <!-- IMPORTANT : action = /login (traité par Spring Security) -->
   <form th:action="@{/login}" method="post">
-    <!-- CSRF optionnel : s’affiche si activé -->
+
     <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
     <label for="username">Username</label>
